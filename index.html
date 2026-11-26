@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estação Meteorológica Arduino</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 15px;
+            margin: 0;
+        }
+        h1 { margin-bottom: 5px; text-align: center; }
+        #status { color: #94a3b8; font-size: 0.9rem; margin-bottom: 30px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+        }
+        .card {
+            background-color: #1e293b;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            border: 1px solid #334155;
+        }
+        .titulo { font-size: 1rem; color: #94a3b8; margin-bottom: 10px; }
+        .valor { font-size: 2.2rem; font-weight: bold; color: #38bdf8; }
+        .subtexto { font-size: 0.95rem; color: #cbd5e1; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>Estação Meteorológica</h1>
+    <div id="status">Carregando dados...</div>
+
+    <div class="grid">
+        <div class="card">
+            <div class="titulo">Temperatura</div>
+            <div class="valor" id="temp">-- °C</div>
+        </div>
+        <div class="card">
+            <div class="titulo">Umidade</div>
+            <div class="valor" id="hum">-- %</div>
+        </div>
+        <div class="card">
+            <div class="titulo">Pressão</div>
+            <div class="valor" id="pres">-- hPa</div>
+        </div>
+        <div class="card">
+            <div class="titulo">Altitude Aprox.</div>
+            <div class="valor" id="alt">-- m</div>
+        </div>
+        <div class="card">
+            <div class="titulo">Iluminação (LDR)</div>
+            <div class="valor" id="ldr">--</div>
+            <div class="subtexto" id="ldr-texto">--</div>
+        </div>
+    </div>
+
+    <script>
+        // --- ALTERE AQUI COM A SUA URL DO FIREBASE ---
+        const URL_FIREBASE = "https://estacao-arduino-default-rtdb.firebaseio.com/dados.json";
+
+        async function atualizarDados() {
+            try {
+                const resposta = await fetch(URL_FIREBASE);
+                const dados = await resposta.json();
+
+                if (dados) {
+                    document.getElementById('temp').innerText = dados.temp.toFixed(1) + " °C";
+                    document.getElementById('hum').innerText = dados.hum.toFixed(1) + " %";
+                    document.getElementById('pres').innerText = dados.pres.toFixed(1) + " hPa";
+                    document.getElementById('alt').innerText = dados.alt.toFixed(1) + " m";
+                    document.getElementById('ldr').innerText = dados.ldr;
+
+                    let estadoLuz = "Claro";
+                    if (dados.ldr < 300) estadoLuz = "Escuro";
+                    else if (dados.ldr < 700) estadoLuz = "Meia-luz";
+                    document.getElementById('ldr-texto').innerText = estadoLuz;
+
+                    const agora = new Date().toLocaleTimeString('pt-BR');
+                    document.getElementById('status').innerText = "Última atualização: " + agora;
+                }
+            } catch (erro) {
+                document.getElementById('status').innerText = "Erro ao conectar ao banco de dados.";
+            }
+        }
+
+        // Busca os dados imediatamente e depois a cada 2 segundos
+        atualizarDados();
+        setInterval(atualizarDados, 2000);
+    </script>
+</body>
+</html>
