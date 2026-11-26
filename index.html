@@ -31,10 +31,20 @@
             text-align: center;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             border: 1px solid #334155;
+            transition: all 0.3s ease;
         }
         .titulo { font-size: 1rem; color: #94a3b8; margin-bottom: 10px; }
         .valor { font-size: 2.2rem; font-weight: bold; color: #38bdf8; }
-        .subtexto { font-size: 0.95rem; color: #cbd5e1; margin-top: 5px; }
+        .subtexto { font-size: 0.95rem; color: #cbd5e1; margin-top: 8px; font-weight: 500; }
+
+        /* Estilos para o alerta do MQ-7 */
+        .card-alerta {
+            background-color: #450a0a;
+            border: 2px solid #ef4444;
+        }
+        .card-alerta .valor { color: #fca5a5; }
+        .card-alerta .subtexto { color: #ef4444; font-weight: bold; }
+        .status-ok { color: #4ade80; }
     </style>
 </head>
 <body>
@@ -64,6 +74,11 @@
             <div class="valor" id="ldr">--</div>
             <div class="subtexto" id="ldr-texto">--</div>
         </div>
+        <div class="card" id="card-mq7">
+            <div class="titulo">Monóxido de Carbono (MQ-7)</div>
+            <div class="valor" id="mq7">--</div>
+            <div class="subtexto" id="mq7-texto">--</div>
+        </div>
     </div>
 
     <script>
@@ -82,10 +97,28 @@
                     document.getElementById('alt').innerText = dados.alt.toFixed(1) + " m";
                     document.getElementById('ldr').innerText = dados.ldr;
 
+                    // Classificação do LDR
                     let estadoLuz = "Claro";
                     if (dados.ldr < 300) estadoLuz = "Escuro";
                     else if (dados.ldr < 700) estadoLuz = "Meia-luz";
                     document.getElementById('ldr-texto').innerText = estadoLuz;
+
+                    // Leitura e Alerta do MQ-7
+                    if (dados.mq7 !== undefined) {
+                        document.getElementById('mq7').innerText = dados.mq7;
+                        const cardMq7 = document.getElementById('card-mq7');
+                        const textoMq7 = document.getElementById('mq7-texto');
+
+                        if (dados.alerta === true) {
+                            cardMq7.classList.add('card-alerta');
+                            textoMq7.classList.remove('status-ok');
+                            textoMq7.innerText = "⚠️ ALERTA: GÁS DETECTADO!";
+                        } else {
+                            cardMq7.classList.remove('card-alerta');
+                            textoMq7.classList.add('status-ok');
+                            textoMq7.innerText = "Normal (Sem alerta)";
+                        }
+                    }
 
                     const agora = new Date().toLocaleTimeString('pt-BR');
                     document.getElementById('status').innerText = "Última atualização: " + agora;
@@ -95,7 +128,6 @@
             }
         }
 
-        // Busca os dados imediatamente e depois a cada 2 segundos
         atualizarDados();
         setInterval(atualizarDados, 2000);
     </script>
